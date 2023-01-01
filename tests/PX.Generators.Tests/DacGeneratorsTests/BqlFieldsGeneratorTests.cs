@@ -20,7 +20,7 @@ namespace PX.Generators.Tests
 {
     public class BqlFieldsGeneratorTests
     {
-        private static readonly string _examplesFolder = "../../../Examples";
+        private static readonly string _examplesFolder = "../../../DacGeneratorsTests/Examples";
 
         [Theory]
         [InlineData("Example1")]
@@ -106,7 +106,7 @@ namespace PX.Generators.Tests
                 yield return MetadataReference.CreateFromFile(Path.Combine(dotnetPath, lib));
             }
 
-            var path = @"c:\repos\code\dev2\NetTools\bin\Debug\";
+            var path = @"..\..\..\..\..\lib";
             foreach (var dll in Directory.GetFiles(path, "PX.Data*.dll"))
             {
                 yield return MetadataReference.CreateFromFile(dll);
