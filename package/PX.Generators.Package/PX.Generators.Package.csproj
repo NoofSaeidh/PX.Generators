@@ -27,7 +27,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\PX.Generators.CodeFixes\PX.Generators.CodeFixes.csproj" />
     <ProjectReference Include="..\..\src\PX.Generators\PX.Generators.csproj" />
   </ItemGroup>
 
