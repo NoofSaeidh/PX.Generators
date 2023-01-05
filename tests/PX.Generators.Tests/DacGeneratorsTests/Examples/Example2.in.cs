@@ -16,8 +16,8 @@ namespace PX.Generators.Tests.Examples
 		[PXDBEmail]
 		public virtual string Field6 { get; set; }
 
-		public new abstract class field3 : BqlString.Field<field3> {}
-		public new abstract class field4 : BqlGuid.Field<field4> {}
+		public new abstract class field3 : BqlString.Field<field3> { }
+		public new abstract class field4 : BqlGuid.Field<field4> { }
 	}
 
 	public partial class Example2_Base : IBqlTable

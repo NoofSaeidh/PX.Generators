@@ -12,8 +12,6 @@ namespace PX.Generators.DacGenerators
     [Generator]
     public class BqlFieldsGenerator : ISourceGenerator
     {
-        private readonly SymbolDisplayFormat _symbolDisplayFormat = new SymbolDisplayFormat();
-
         public void Initialize(GeneratorInitializationContext context)
         {
         }
