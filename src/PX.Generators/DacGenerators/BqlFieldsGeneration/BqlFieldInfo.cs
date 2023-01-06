@@ -5,7 +5,8 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
     internal class BqlFieldInfo : IEquatable<BqlFieldInfo>
     {
         public string Name { get; init; }
-        public BqlPropertyType Type { get; init; }
+        public bool IsHidingBaseClass { get; init; }
+        public BqlFieldPropertyType Type { get; init; }
 
         public bool Equals(BqlFieldInfo? other)
         {

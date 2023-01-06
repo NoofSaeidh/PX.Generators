@@ -19,8 +19,6 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
         // ReSharper disable InconsistentNaming
         private const string IBqlTableName = "PX.Data.IBqlTable";
         private const string PXEventSubscriberAttributeName = "PX.Data.PXEventSubscriberAttribute";
-
-        private const string GuidName = nameof(System.Guid);
         // ReSharper enable InconsistentNaming
 
         private static readonly SymbolDisplayFormat PropertyDisplayFormat =
@@ -168,14 +166,7 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
         {
             var bqlTablesContext = GetBqlTablesContext(context);
 
-            context.RegisterSourceOutput(bqlTablesContext,
-                                         (ctx, data) =>
-                                         {
-
-                                         });
-
-            //var combined = classDeclarations.Combine(types);
-            //combined.WithTrackingName
+            context.RegisterSourceOutput(bqlTablesContext, GenerateCode);
         }
 
         private IncrementalValuesProvider<BqlTableInfo> GetBqlTablesContext(
@@ -184,13 +175,15 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
             var types = GetTypes(context);
 
             return context.SyntaxProvider
-                           .CreateSyntaxProvider(
-                               predicate: static (n, _) => n is ClassDeclarationSyntax cd && IsPartial(cd),
-                               transform: static (ctx, _) => ctx)
-                           .Combine(types)
-                           // Where with cancellation is internal :(
-                           .Select(static (ctx, ct) => TryGetBqlTableInfo(ctx.Left, ctx.Right, ct))
-                           .Where(static (bqlTable) => bqlTable is not null)!;
+                          .CreateSyntaxProvider(
+                              predicate: static (n, _) => n is ClassDeclarationSyntax cd && IsPartial(cd),
+                              transform: static (ctx, _) => ctx)
+                          .Combine(types)
+                          // Where with cancellation is internal :(
+                          .Select(static (ctx, ct) => TryGetBqlTableInfo(ctx.Left, ctx.Right, ct))
+                          .Where(static (bqlTable) => bqlTable?.Fields?.Count > 0)
+                          .Collect()
+                          .SelectMany(static (bqlTable, _) => bqlTable.Distinct())!;
 
             static bool IsPartial(ClassDeclarationSyntax classDeclaration)
             {
@@ -222,7 +215,7 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
 
                 foreach (var property in properties)
                 {
-                    if (BqlPropertyType.TryParse(property.Type.ToDisplayString(PropertyDisplayFormat),
+                    if (BqlFieldPropertyType.TryParse(property.Type.ToDisplayString(PropertyDisplayFormat),
                                                  out var bqlPropertyType))
                     {
                         bqlFields.Add(new () { Name = property.Name, Type = bqlPropertyType });
@@ -288,6 +281,13 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
                         PXEventSubscriberAttributeSymbol = eventSubscriber,
                     };
                 });
+        }
+
+        private void GenerateCode(SourceProductionContext context, BqlTableInfo bqlTables)
+        {
+            var (name, code) = BqlFieldsCodeGenerator.Instance.Generate(bqlTables);
+            if (name != null && code != null)
+                context.AddSource(name, code);
         }
 
         private readonly struct ReferencesTypesSymbols
