@@ -14,10 +14,4 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.4.0" PrivateAssets="all" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="PX.Data">
-      <HintPath>..\..\lib\PX.Data.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>
