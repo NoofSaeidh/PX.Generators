@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using PX.Generators.DacGenerators;
+using PX.Generators.DacGenerators.BqlFieldsGeneration;
 using Xunit;
 
 namespace PX.Generators.Tests
