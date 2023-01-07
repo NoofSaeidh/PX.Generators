@@ -17,6 +17,7 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
     {
         // ReSharper disable InconsistentNaming
         private const string IBqlTableName = "PX.Data.IBqlTable";
+
         private const string PXEventSubscriberAttributeName = "PX.Data.PXEventSubscriberAttribute";
         // ReSharper enable InconsistentNaming
 
@@ -37,10 +38,10 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
 
             return context.SyntaxProvider
                           .CreateSyntaxProvider(
-                              predicate: static (n, _) => n is ClassDeclarationSyntax cd && IsPartial(cd),
-                              transform: static (ctx, _) => ctx)
+                               predicate: static (n, _) => n is ClassDeclarationSyntax cd && IsPartial(cd),
+                               transform: static (ctx, _) => ctx)
                           .Combine(types)
-                          // Where with cancellation is internal :(
+                           // Where with cancellation is internal :(
                           .Select(static (ctx, ct) => TryGetBqlTableInfo(ctx.Left, ctx.Right, ct))
                           .Where(static (bqlTable) => bqlTable?.Fields?.Count > 0)
                           .Collect()
@@ -65,29 +66,59 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
                 if (classSymbol.ContainingType is not null)
                     return null;
 
-                if (classSymbol.AllInterfaces.Contains(referencesTypes.IBqlTableSymbol) is false)
+                if (IsBqlTable(classSymbol) is false)
                     return null;
 
-                var properties = classSymbol.GetMembers()
-                                            .OfType<IPropertySymbol>()
-                                            .Where(IsBqlFieldProperty);
+
+                var existingClasses = classSymbol.GetTypeMembers();
+
+                var allTypes = GetAllBqlTableTypeFor(classSymbol).ToList();
+
+#pragma warning disable RS1024
+                var properties = allTypes.SelectMany(t => t.GetMembers()
+                                                           .OfType<IPropertySymbol>()
+                                                           .Where(IsBqlFieldProperty))
+                                         .Distinct(PropertyNameEqualityComparer.Instance);
+#pragma warning restore RS1024
+
+                var selfNestedClasses = classSymbol.GetTypeMembers();
+                var parentNestedClasses = allTypes.Skip(1)
+                                                  .SelectMany(m => m.GetTypeMembers())
+                                                  .ToList();
+
 
                 var bqlFields = new List<BqlFieldInfo>();
 
-                foreach (var property in properties)
+                foreach (IPropertySymbol property in properties)
                 {
                     if (BqlFieldPropertyType.TryParse(property.Type.ToDisplayString(PropertyDisplayFormat),
-                                                 out var bqlPropertyType))
+                                                      out var bqlPropertyType))
                     {
-                        bqlFields.Add(new () { Name = property.Name, Type = bqlPropertyType });
+                        if (CannotAddClassField())
+                            continue;
+
+                        bqlFields.Add(new ()
+                        {
+                            Name = property.Name,
+                            Type = bqlPropertyType,
+                            IsHidingBaseClass = IsHidingBaseClass(),
+                        });
                     }
+
+                    bool CannotAddClassField() => selfNestedClasses.Any(c =>
+                        StringComparer.InvariantCultureIgnoreCase.Equals(property.Name, c.Name));
+
+                    bool IsHidingBaseClass() => parentNestedClasses!.Any(c => 
+                        StringComparer.InvariantCulture.Equals(
+                            BqlFieldInfo.GetClassName(property.Name),
+                            c.Name));
                 }
 
                 if (bqlFields.Count > 0)
                     return new BqlTableInfo
                     {
                         Name      = classSymbol.Name,
-                        Namespace = classSymbol.ContainingNamespace?.Name,
+                        Namespace = classSymbol.ContainingNamespace?.ToDisplayString(),
                         Fields    = bqlFields
                     };
 
@@ -114,13 +145,29 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
                             if (type == null)
                                 return false;
 
-                            if (type.Equals(referencesTypes.PXEventSubscriberAttributeSymbol, SymbolEqualityComparer.Default))
+                            if (type.Equals(referencesTypes.PXEventSubscriberAttributeSymbol,
+                                            SymbolEqualityComparer.Default))
                                 return true;
 
                             type = type.BaseType;
                         }
                     }
                 }
+
+
+                IEnumerable<ITypeSymbol> GetAllBqlTableTypeFor(ITypeSymbol type)
+                {
+                    for (ITypeSymbol? symbol = type; IsBqlTable(symbol); symbol = symbol.BaseType)
+                    {
+                        yield return symbol!;
+                    }
+                }
+
+                bool IsBqlTable(ITypeSymbol? type)
+                {
+                    return type?.AllInterfaces.Contains(referencesTypes.IBqlTableSymbol) is true;
+                }
+
             }
         }
 
@@ -158,6 +205,41 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
         {
             public INamedTypeSymbol IBqlTableSymbol { get; init; }
             public INamedTypeSymbol PXEventSubscriberAttributeSymbol { get; init; }
+        }
+
+        private class PropertyNameEqualityComparer : IEqualityComparer<IPropertySymbol>
+        {
+            public static PropertyNameEqualityComparer Instance = new();
+
+            public bool Equals(IPropertySymbol x, IPropertySymbol y)
+            {
+                if (ReferenceEquals(x, y))
+                {
+                    return true;
+                }
+
+                if (ReferenceEquals(x, null))
+                {
+                    return false;
+                }
+
+                if (ReferenceEquals(y, null))
+                {
+                    return false;
+                }
+
+                if (x.GetType() != y.GetType())
+                {
+                    return false;
+                }
+
+                return StringComparer.OrdinalIgnoreCase.Equals(x.Name, y.Name);
+            }
+
+            public int GetHashCode(IPropertySymbol obj)
+            {
+                return StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Name);
+            }
         }
     }
 }

@@ -60,7 +60,7 @@ namespace PX.Generators.Tests
             generatorResult.GeneratedSources.Should().HaveCount(1);
             generatorResult.Exception.Should().BeNull();
 
-            generatorResult.GeneratedSources[0].HintName.Should().Be($"Examples.{exampleName}.bqlfields.g.cs");
+            generatorResult.GeneratedSources[0].HintName.Should().Be($"PX.Generators.Tests.Examples.{exampleName}.bqlfields.g.cs");
             var actual   = ClearUp(generatorResult.GeneratedSources[0].SourceText.ToString());
             var expected = ClearUp(Out.ToString());
 

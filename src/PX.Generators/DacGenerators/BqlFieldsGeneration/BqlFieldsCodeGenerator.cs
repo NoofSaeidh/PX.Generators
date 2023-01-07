@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using PX.Generators.Common;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace PX.Generators.DacGenerators.BqlFieldsGeneration
@@ -47,32 +46,55 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
                 if (string.IsNullOrEmpty(bqlTable.Namespace))
                     return GetClass();
 
-                return NamespaceDeclaration(IdentifierName(bqlTable.Namespace!))
-                   .AddMembers(GetClass());
+                return NamespaceDeclaration(
+                    name: ParseName(bqlTable.Namespace!),
+                    externs: default,
+                    usings: default,
+                    members: SingletonList<MemberDeclarationSyntax>(GetClass())
+                );
             }
 
             ClassDeclarationSyntax GetClass()
             {
-                return ClassDeclaration(bqlTable.Name)
-                      .AddModifiers(Token(SyntaxKind.PartialKeyword))
-                      .WithMembers(
-                           List<MemberDeclarationSyntax>(
-                               bqlTable.Fields
-                                       .Select(f =>
-                                        {
-                                            if (f.ClassType == null)
-                                                return null;
-                                            return ClassDeclaration(f.ClassName)
-                                                  .AddModifiers(
-                                                       Token(SyntaxKind.PublicKeyword),
-                                                       Token(SyntaxKind.AbstractKeyword))
-                                                  .AddBaseListTypes(
-                                                       SimpleBaseType(
-                                                           ParseTypeName(
-                                                               $"PX.Data.BQL.{f.ClassType}.Field<{f.ClassName}>")));
-                                            // todo: add new keyword
-                                        })
-                                       .Where(f => f != null)!));
+                return ClassDeclaration(
+                    attributeLists: default,
+                    modifiers: TokenList(Token(SyntaxKind.PartialKeyword)),
+                    identifier: Identifier(bqlTable.Name),
+                    typeParameterList: default,
+                    baseList: default,
+                    constraintClauses: default,
+                    members: List(GetBqlFieldsClasses())
+                );
+            }
+
+            IEnumerable<MemberDeclarationSyntax> GetBqlFieldsClasses()
+            {
+                foreach (BqlFieldInfo field in bqlTable.Fields!)
+                {
+                    if (field.ClassType == null)
+                        continue;
+
+                    yield return ClassDeclaration(
+                        attributeLists: List<AttributeListSyntax>(),
+                        modifiers: TokenList(GetTokens()),
+                        identifier: Identifier(field.ClassName),
+                        typeParameterList: default,
+                        baseList: BaseList(
+                            SingletonSeparatedList<BaseTypeSyntax>(
+                                SimpleBaseType(
+                                    ParseTypeName($"PX.Data.BQL.{field.ClassType}.Field<{field.ClassName}>")))),
+                        constraintClauses: default,
+                        members: default
+                    );
+
+                    IEnumerable<SyntaxToken> GetTokens()
+                    {
+                        yield return Token(SyntaxKind.PublicKeyword);
+                        yield return Token(SyntaxKind.AbstractKeyword);
+                        if (field.IsHidingBaseClass)
+                            yield return Token(SyntaxKind.NewKeyword);
+                    }
+                }
             }
         }
     }
