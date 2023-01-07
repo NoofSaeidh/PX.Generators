@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Threading;
+using System.IO;
 
 namespace PX.Generators.DacGenerators.BqlFieldsGeneration
 {
@@ -283,11 +284,14 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
                 });
         }
 
-        private void GenerateCode(SourceProductionContext context, BqlTableInfo bqlTables)
+        private void GenerateCode(SourceProductionContext context, BqlTableInfo bqlTable)
         {
-            var (name, code) = BqlFieldsCodeGenerator.Instance.Generate(bqlTables);
-            if (name != null && code != null)
-                context.AddSource(name, code);
+            var (name, text) = BqlFieldsCodeGenerator.Instance.Compile(bqlTable);
+            if (name == null || text == null)
+                return;
+
+
+            context.AddSource(name, text);
         }
 
         private readonly struct ReferencesTypesSymbols

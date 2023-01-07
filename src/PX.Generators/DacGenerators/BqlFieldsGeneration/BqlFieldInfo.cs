@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 namespace PX.Generators.DacGenerators.BqlFieldsGeneration
 {
@@ -7,6 +8,12 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
         public string Name { get; init; }
         public bool IsHidingBaseClass { get; init; }
         public BqlFieldPropertyType Type { get; init; }
+
+        public string ClassName => string.IsNullOrEmpty(Name)
+            ? string.Empty
+            : char.ToLowerInvariant(Name[0]) + Name.Substring(1, Name.Length - 1);
+
+        public string? ClassType => BqlFieldClassType.TryMap(Type, out var classType) ? classType : null;
 
         public bool Equals(BqlFieldInfo? other)
         {

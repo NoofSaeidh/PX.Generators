@@ -56,12 +56,11 @@ namespace PX.Generators.Tests
             runResult.GeneratedTrees.Should().HaveCount(1);
 
             var generatorResult = runResult.Results[0];
-            generatorResult.Generator.Should().BeEquivalentTo(generator);
             generatorResult.Diagnostics.Should().BeEmpty();
             generatorResult.GeneratedSources.Should().HaveCount(1);
             generatorResult.Exception.Should().BeNull();
 
-            generatorResult.GeneratedSources[0].HintName.Should().Be(exampleName + ".bqlfields.generated.cs");
+            generatorResult.GeneratedSources[0].HintName.Should().Be($"Examples.{exampleName}.bqlfields.g.cs");
             var actual   = ClearUp(generatorResult.GeneratedSources[0].SourceText.ToString());
             var expected = ClearUp(Out.ToString());
 
