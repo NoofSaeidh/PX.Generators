@@ -90,9 +90,9 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
                     IEnumerable<SyntaxToken> GetTokens()
                     {
                         yield return Token(SyntaxKind.PublicKeyword);
-                        yield return Token(SyntaxKind.AbstractKeyword);
                         if (field.IsHidingBaseClass)
                             yield return Token(SyntaxKind.NewKeyword);
+                        yield return Token(SyntaxKind.AbstractKeyword);
                     }
                 }
             }
