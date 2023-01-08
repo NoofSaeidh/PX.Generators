@@ -9,12 +9,12 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
         public bool IsHidingBaseClass { get; init; }
         public BqlFieldPropertyType Type { get; init; }
 
-        public string ClassName => GetClassName(Name);
+        public string? ClassName => GetClassName(Name);
 
-        public static string GetClassName(string name)
+        public static string? GetClassName(string name)
         {
             return string.IsNullOrEmpty(name)
-                ? string.Empty
+                ? null
                 : char.ToLowerInvariant(name[0]) + name.Substring(1, name.Length - 1);
         }
 

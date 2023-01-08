@@ -30,7 +30,7 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
         public static BqlFieldClassType BqlString => new("BqlString", BqlFieldPropertyType.String);
         public static BqlFieldClassType BqlInt => new("BqlInt", BqlFieldPropertyType.Int);
         public static BqlFieldClassType BqlShort => new("BqlShort", BqlFieldPropertyType.Short);
-        public static BqlFieldClassType BqlLong => new("BqlLong", BqlFieldPropertyType.Short);
+        public static BqlFieldClassType BqlLong => new("BqlLong", BqlFieldPropertyType.Long);
         public static BqlFieldClassType BqlDouble => new("BqlDouble", BqlFieldPropertyType.Double);
         public static BqlFieldClassType BqlDecimal => new("BqlDecimal", BqlFieldPropertyType.Decimal);
         public static BqlFieldClassType BqlDateTime => new("BqlDateTime", BqlFieldPropertyType.DateTime);
