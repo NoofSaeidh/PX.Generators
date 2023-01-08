@@ -8,7 +8,7 @@ using PX.Data.BQL;
 
 namespace PX.Generators.Tests.Examples
 {
-    public partial class Example2 : Example2_Base
+    public partial class InheritanceExample : InheritanceExample_Base
     {
         [PXDBString]
         public override string Field1 { get; set; }
@@ -21,7 +21,7 @@ namespace PX.Generators.Tests.Examples
         public new abstract class field4 : BqlGuid.Field<field4> { }
     }
 
-    public partial class Example2_Base : IBqlTable
+    public partial class InheritanceExample_Base : IBqlTable
     {
         public abstract class field1 : PX.Data.BQL.BqlString.Field<field1> { }
 

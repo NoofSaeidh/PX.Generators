@@ -26,8 +26,8 @@ namespace PX.Generators.Tests
         private static readonly string ExamplesFolder = "../../../DacGeneratorsTests/Examples";
 
         [Theory]
-        [InlineData("Example1")]
-        [InlineData("Example2")]
+        [InlineData("SimpleExample")]
+        [InlineData("InheritanceExample")]
         public void Generator_Should_Generate_All_Missing_Fields(string exampleName)
         {
             // arrange

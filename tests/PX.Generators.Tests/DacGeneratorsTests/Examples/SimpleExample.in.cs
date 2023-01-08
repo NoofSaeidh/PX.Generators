@@ -8,7 +8,7 @@ using PX.Data.BQL;
 
 namespace PX.Generators.Tests.Examples
 {
-    public partial class Example1 : IBqlTable
+    public partial class SimpleExample : IBqlTable
     {
         [PXDBString]
         public virtual string Field1 { get; set; }
