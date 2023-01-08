@@ -14,12 +14,13 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace PX.Generators.DacGenerators.BqlFieldsGeneration
 {
-    internal class BqlFieldsCodeGenerator
+    internal class BqlFieldsRoslynCodeGenerator
     {
         public static readonly string Indentation = "\t";
-        public static BqlFieldsCodeGenerator Instance { get; } = new();
+        public static BqlFieldsRoslynCodeGenerator Instance { get; } = new();
 
-        public (string? FileName, SourceText? source) Compile(BqlTableInfo bqlTable, CancellationToken cancellationToken)
+        public (string? FileName, SourceText? source) GenerateCode(BqlTableInfo bqlTable,
+                                                                   CancellationToken cancellationToken)
         {
             if (bqlTable.Fields?.Count is not > 0)
             {
@@ -30,8 +31,8 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
             cancellationToken.ThrowIfCancellationRequested();
 
             var compilation = CompilationUnit()
-               .AddMembers(GetNamespaceOrClass()
-                              .WithLeadingTrivia(GetComment()));
+                .AddMembers(GetNamespaceOrClass()
+                                .WithLeadingTrivia(GetComment()));
 
             cancellationToken.ThrowIfCancellationRequested();
 
