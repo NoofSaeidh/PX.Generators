@@ -21,6 +21,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "items", "items", "{9A5EE878
 		PX.Generators.sln.DotSettings = PX.Generators.sln.DotSettings
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PX.Generators.Benchmarks", "tests\PX.Generators.Benchmarks\PX.Generators.Benchmarks.csproj", "{7BF23D61-F8D1-4FD4-B9CE-DC15287F46CA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{6819F361-5270-4686-B300-E478A23D3C31}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6819F361-5270-4686-B300-E478A23D3C31}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6819F361-5270-4686-B300-E478A23D3C31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BF23D61-F8D1-4FD4-B9CE-DC15287F46CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BF23D61-F8D1-4FD4-B9CE-DC15287F46CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BF23D61-F8D1-4FD4-B9CE-DC15287F46CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BF23D61-F8D1-4FD4-B9CE-DC15287F46CA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -47,6 +53,7 @@ Global
 		{3958F45A-FCDA-46AB-A3C2-79154B43BF9E} = {F8335BEF-13B5-424B-9136-0B9384DD4195}
 		{C2D3178C-4AB9-4556-A71A-C1C77A7D45C2} = {3B63B6FE-3159-4F9A-AA17-AB08582FF764}
 		{6819F361-5270-4686-B300-E478A23D3C31} = {08958A64-6522-4DB0-8851-D39D9D34E981}
+		{7BF23D61-F8D1-4FD4-B9CE-DC15287F46CA} = {08958A64-6522-4DB0-8851-D39D9D34E981}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E92EE7D0-6398-4CB6-B91D-2AE539867F86}

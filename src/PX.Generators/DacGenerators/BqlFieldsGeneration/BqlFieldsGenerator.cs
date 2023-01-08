@@ -6,8 +6,8 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
     [Generator(LanguageNames.CSharp)]
     public class BqlFieldsGenerator : IIncrementalGenerator
     {
-        private static ICodeGenerator<BqlTableInfo> CodeGenerator => BqlFieldsSimpleCodeGenerator.Instance;
-        private static BqlFieldsCollector Collector => BqlFieldsCollector.Instance;
+        internal static ICodeGenerator<BqlTableInfo> CodeGenerator { get; set; } = BqlFieldsSimpleCodeGenerator.Instance;
+        internal static BqlFieldsCollector Collector { get; set; } = BqlFieldsCollector.Instance;
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {

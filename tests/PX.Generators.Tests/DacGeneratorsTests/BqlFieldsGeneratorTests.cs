@@ -16,13 +16,14 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using PX.Generators.DacGenerators;
 using PX.Generators.DacGenerators.BqlFieldsGeneration;
+using PX.Generators.Tests.Common;
 using Xunit;
 
 namespace PX.Generators.Tests
 {
     public class BqlFieldsGeneratorTests
     {
-        private static readonly string _examplesFolder = "../../../DacGeneratorsTests/Examples";
+        private static readonly string ExamplesFolder = "../../../DacGeneratorsTests/Examples";
 
         [Theory]
         [InlineData("Example1")]
@@ -31,7 +32,7 @@ namespace PX.Generators.Tests
         {
             // arrange
             var (In, Out) = GetInAndOutExamples(exampleName);
-            var             compilation = CreateCompilation(In);
+            var             compilation = TestsInitialization.CreateCompilation(In);
             var             generator   = new BqlFieldsGenerator();
             GeneratorDriver driver      = CSharpGeneratorDriver.Create(generator);
 
@@ -78,43 +79,12 @@ namespace PX.Generators.Tests
 
         private static (SourceText In, SourceText Out) GetInAndOutExamples(string exampleName)
         {
-            var In  = SourceText.From(File.OpenRead(Path.Combine(_examplesFolder, $"{exampleName}.in.cs")));
-            var Out = SourceText.From(File.OpenRead(Path.Combine(_examplesFolder, $"{exampleName}.out.cs")));
+            var In  = SourceText.From(File.OpenRead(Path.Combine(ExamplesFolder, $"{exampleName}.in.cs")));
+            var Out = SourceText.From(File.OpenRead(Path.Combine(ExamplesFolder, $"{exampleName}.out.cs")));
             return (In, Out);
         }
 
-        private static Compilation CreateCompilation(SourceText source)
-        {
-            return CSharpCompilation.Create("compilation",
-                                            new[] { CSharpSyntaxTree.ParseText(source) },
-                                            null,
-                                            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                                    .WithReferences(GetMetadataReferences());
-        }
 
-        private static IEnumerable<MetadataReference> GetMetadataReferences()
-        {
-            var dotnetPath = Path.GetDirectoryName(typeof(object).Assembly.Location);
-            string[] libs =
-            {
-                "mscorlib.dll",
-                //"netstandard.dll",
-                "System.dll",
-                "System.Core.dll",
-                //"System.Private.CoreLib.dll"
-                //"System.Runtime.dll",
-            };
 
-            foreach (var lib in libs)
-            {
-                yield return MetadataReference.CreateFromFile(Path.Combine(dotnetPath, lib));
-            }
-
-            var path = @"..\..\..\..\..\lib";
-            foreach (var dll in Directory.GetFiles(path, "PX.Data*.dll"))
-            {
-                yield return MetadataReference.CreateFromFile(dll);
-            }
-        }
     }
 }

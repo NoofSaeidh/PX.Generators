@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net4.8</TargetFramework>
+    <Nullable>disable</Nullable>
+    <LangVersion>8.0</LangVersion>
+    <IsPackable>false</IsPackable>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.3" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.4.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PX.Generators\PX.Generators.csproj" />
+    <ProjectReference Include="..\PX.Generators.Tests\PX.Generators.Tests.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PX.Data">
+      <HintPath>..\..\lib\PX.Data.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>
