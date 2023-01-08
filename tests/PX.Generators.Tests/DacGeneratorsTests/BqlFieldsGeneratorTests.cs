@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -40,31 +41,34 @@ namespace PX.Generators.Tests
                 compilation, out var outputCompilation, out var diagnostics);
 
             // assert
+            using (new AssertionScope())
+            {
+                outputCompilation.GetDiagnostics()
+                                 // todo: remove warnings
+                                 .Where(d => d.WarningLevel == 0)
+                                 .Should().BeEmpty();
 
-            outputCompilation.GetDiagnostics()
-                             // todo: remove warnings
-                             .Where(d => d.WarningLevel == 0)
-                             .Should().BeEmpty();
+                diagnostics.Should().BeEmpty();
+                outputCompilation.SyntaxTrees.Should().HaveCount(2);
+                // todo: fix errors
+                //outputCompilation.GetDiagnostics().Should().BeEmpty();
 
-            diagnostics.Should().BeEmpty();
-            outputCompilation.SyntaxTrees.Should().HaveCount(2);
-            // todo: fix errors
-            //outputCompilation.GetDiagnostics().Should().BeEmpty();
+                var runResult = driver.GetRunResult();
+                runResult.Diagnostics.Should().BeEmpty();
+                runResult.GeneratedTrees.Should().HaveCount(1);
 
-            var runResult = driver.GetRunResult();
-            runResult.Diagnostics.Should().BeEmpty();
-            runResult.GeneratedTrees.Should().HaveCount(1);
+                var generatorResult = runResult.Results[0];
+                generatorResult.Diagnostics.Should().BeEmpty();
+                generatorResult.GeneratedSources.Should().HaveCount(1);
+                generatorResult.Exception.Should().BeNull();
 
-            var generatorResult = runResult.Results[0];
-            generatorResult.Diagnostics.Should().BeEmpty();
-            generatorResult.GeneratedSources.Should().HaveCount(1);
-            generatorResult.Exception.Should().BeNull();
+                generatorResult.GeneratedSources[0].HintName.Should()
+                               .Be($"PX.Generators.Tests.Examples.{exampleName}.bqlfields.g.cs");
+                var actual   = ClearUp(generatorResult.GeneratedSources[0].SourceText.ToString());
+                var expected = ClearUp(Out.ToString());
 
-            generatorResult.GeneratedSources[0].HintName.Should().Be($"PX.Generators.Tests.Examples.{exampleName}.bqlfields.g.cs");
-            var actual   = ClearUp(generatorResult.GeneratedSources[0].SourceText.ToString());
-            var expected = ClearUp(Out.ToString());
-
-            actual.Should().BeEquivalentTo(expected, "result of generator should be same as in example");
+                actual.Should().BeEquivalentTo(expected, "result of generator should be same as in example");
+            }
 
             string ClearUp(string input)
             {
