@@ -2,7 +2,7 @@
 using PX.Data;
 using System;
 
-namespace PX.Generators.Tests.DacGeneratorsTests.Examples
+namespace PX.Generators.Tests.DacGeneratorsTests.Examples.Nested
 {
     public partial class NestedExample
     {

@@ -34,13 +34,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="DacGeneratorsTests\Examples\*.out.cs" />
-    <None Include="DacGeneratorsTests\Examples\*.out.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="PX.Data">
       <HintPath>..\..\lib\PX.Data.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="DacGeneratorsTests\Examples\Inheritance\out\InheritanceExample.cs" />
+    <None Include="DacGeneratorsTests\Examples\Nested\out\NestedExample+Inner+InnerNested.cs" />
+    <None Include="DacGeneratorsTests\Examples\Nested\out\NestedExample+Nested.cs" />
+    <None Include="DacGeneratorsTests\Examples\Simple\out\SimpleExample.cs" />
   </ItemGroup>
 </Project>
