@@ -15,6 +15,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace PX.Generators.DacGenerators.BqlFieldsGeneration
 {
+    [Obsolete("Doesn't support everything")]
     internal class BqlFieldsRoslynCodeGenerator : ICodeGenerator<BqlTableInfo>
     {
         public static readonly string Indentation = "\t";
