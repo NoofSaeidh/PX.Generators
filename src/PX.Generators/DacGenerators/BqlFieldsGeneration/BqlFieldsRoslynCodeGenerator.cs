@@ -10,16 +10,17 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
+using PX.Generators.Common;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace PX.Generators.DacGenerators.BqlFieldsGeneration
 {
-    internal class BqlFieldsRoslynCodeGenerator
+    internal class BqlFieldsRoslynCodeGenerator : ICodeGenerator<BqlTableInfo>
     {
         public static readonly string Indentation = "\t";
         public static BqlFieldsRoslynCodeGenerator Instance { get; } = new();
 
-        public (string? FileName, SourceText? source) GenerateCode(BqlTableInfo bqlTable,
+        public CodeGenerationResult GenerateCode(BqlTableInfo bqlTable,
                                                                    CancellationToken cancellationToken)
         {
             if (bqlTable.Fields?.Count is not > 0)
@@ -38,7 +39,7 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
 
             compilation = compilation.NormalizeWhitespace(Indentation);
 
-            return (
+            return new (
                 $"{bqlTable.FullName}.bqlfields.g.cs",
                 SourceText.From(compilation.ToFullString(), Encoding.UTF8)
             );
