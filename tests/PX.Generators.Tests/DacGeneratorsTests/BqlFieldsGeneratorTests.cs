@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 using PX.Generators.DacGenerators;
 using PX.Generators.DacGenerators.BqlFieldsGeneration;
 using PX.Generators.Tests.Common;
+using PX.Generators.Tests.DacGeneratorsTests.Examples;
 using Xunit;
 
 namespace PX.Generators.Tests
@@ -24,6 +25,7 @@ namespace PX.Generators.Tests
     public class BqlFieldsGeneratorTests
     {
         private static readonly string ExamplesFolder = "../../../DacGeneratorsTests/Examples";
+        private static readonly string ExamplesNamespace = typeof(SimpleExample).Namespace;
 
         [Theory]
         [InlineData("SimpleExample")]
@@ -61,17 +63,23 @@ namespace PX.Generators.Tests
                 var generatorResult = runResult.Results[0];
                 generatorResult.Diagnostics.Should().BeEmpty();
                 generatorResult.GeneratedSources.Should().HaveCount(expected.Count);
+                var hintPaths         = generatorResult.GeneratedSources.Select(s => s.HintName);
+                var expectedFileNames = expected.Select(e => e.FileName);
+                hintPaths.Should().BeEquivalentTo(expectedFileNames,
+                                                  config => config.WithoutStrictOrdering(),
+                                                  "hint paths should be equal to expected file names");
                 generatorResult.Exception.Should().BeNull();
 
                 // todo
                 //generatorResult.GeneratedSources[0].HintName.Should()
                 //               .Be($"PX.Generators.Tests.Examples.{exampleName}.bqlfields.g.cs");
-                foreach (var (generatedSource, outText) in generatorResult.GeneratedSources.Zip(
-                    expected, (l, r) => (l, r)))
+                foreach (var generatedSource in generatorResult.GeneratedSources)
                 {
-                    var actualText   = ClearUp(generatedSource.SourceText.ToString());
-                    var expectedText = ClearUp(outText.ToString());
-                    actualText.Should().BeEquivalentTo(expectedText, "result of generator should be same as in example");
+                    var actualText = ClearUp(generatedSource.SourceText.ToString());
+                    var expectedText =
+                        ClearUp(expected.First(e => e.FileName == generatedSource.HintName).Text.ToString());
+                    actualText.Should()
+                              .BeEquivalentTo(expectedText, "result of generator should be same as in example");
                 }
             }
 
@@ -81,9 +89,11 @@ namespace PX.Generators.Tests
             }
         }
 
-        private static (SourceText Input, List<SourceText> Expected) GetInAndOutExamples(string exampleName)
+        private static (SourceText Input, List<(string FileName, SourceText Text)> Expected) GetInAndOutExamples(
+            string exampleName)
         {
-            var input = TryGetSourceText($"{exampleName}.in.cs")
+            
+            var input = TryGetSourceText(Path.Combine(ExamplesFolder, $"{exampleName}.in.cs"))
                      ?? throw new InvalidOperationException($"Cannot find file for {exampleName}.in.cs");
             var output = GetExpected().ToList();
             if (output.Count == 0)
@@ -91,27 +101,20 @@ namespace PX.Generators.Tests
 
             return (input, output);
 
-            SourceText? TryGetSourceText(string fileName)
+            SourceText? TryGetSourceText(string path)
             {
-                var path = Path.Combine(ExamplesFolder, fileName);
                 if (File.Exists(path))
                     return SourceText.From(File.OpenRead(path));
                 return null;
             }
 
-            IEnumerable<SourceText> GetExpected()
+            IEnumerable<(string, SourceText)> GetExpected()
             {
-                if (TryGetSourceText($"{exampleName}.out.cs") is { } expected)
+                foreach (var file in Directory.EnumerateFiles(ExamplesFolder, $"{exampleName}*.out.cs"))
                 {
-                    yield return expected;
-                }
-
-                for (var i = 1; ; i++)
-                {
-                    if (TryGetSourceText($"{exampleName}.out.{i}.cs") is { } multipleExpected)
-                        yield return multipleExpected;
-                    else
-                        break;
+                    var name = $"{ExamplesNamespace}.{Path.GetFileName(file).Replace(".out.cs", ".bqlfields.g.cs")}";
+                    if (TryGetSourceText(file) is { } expectedPart)
+                        yield return (name, expectedPart);
                 }
             }
         }

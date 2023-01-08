@@ -4,9 +4,9 @@ using System;
 
 namespace PX.Generators.Tests.DacGeneratorsTests.Examples
 {
-    public partial class NestingClass
+    public partial class NestedExample
     {
-        public partial class NestedExample : IBqlTable
+        public partial class Nested : IBqlTable
         {
             [PXDBString]
             public virtual string Field1 { get; set; }
@@ -28,9 +28,9 @@ namespace PX.Generators.Tests.DacGeneratorsTests.Examples
             public virtual short? Field5 { get; set; }
         }
 
-        public partial class InnerNestingClass
+        public partial class Inner
         {
-            public partial class InnerNestedExample : IBqlTable
+            public partial class InnerNested : IBqlTable
             {
                 [PXDBString]
                 public virtual string Field1 { get; set; }
