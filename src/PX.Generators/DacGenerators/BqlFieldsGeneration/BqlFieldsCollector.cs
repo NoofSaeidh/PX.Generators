@@ -15,8 +15,9 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
 
         // ReSharper disable InconsistentNaming
         private const string IBqlTableName = "PX.Data.IBqlTable";
-
         private const string PXEventSubscriberAttributeName = "PX.Data.PXEventSubscriberAttribute";
+
+        private const string PXCacheExtensionName = "PX.Data.PXCacheExtension";
         // ReSharper enable InconsistentNaming
 
         private static readonly SymbolDisplayFormat PropertyDisplayFormat =
@@ -25,7 +26,7 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
         public IncrementalValuesProvider<BqlTableInfo> Collect(
             IncrementalGeneratorInitializationContext context)
         {
-            var types = GetTypes(context);
+            var types = GetReferencesTypes(context);
 
             return context.SyntaxProvider
                           .CreateSyntaxProvider(
@@ -53,7 +54,7 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
                 if (classSymbol == null)
                     return null;
 
-                if (IsBqlTable(classSymbol) is false)
+                if (IsBqlTableOrCacheExtension(classSymbol) is false)
                     return null;
 
                 if (CheckContainingTypes(classSymbol, out var containingTypes) is false)
@@ -148,15 +149,33 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
 
                 IEnumerable<ITypeSymbol> GetAllBqlTableTypeFor(ITypeSymbol type)
                 {
-                    for (ITypeSymbol? symbol = type; IsBqlTable(symbol); symbol = symbol.BaseType!)
+                    for (ITypeSymbol? symbol = type; IsBqlTableOrCacheExtension(symbol); symbol = symbol.BaseType!)
                     {
                         yield return symbol;
                     }
                 }
 
-                bool IsBqlTable(ITypeSymbol? type)
+                bool IsBqlTable(ITypeSymbol? type) =>
+                    type?.AllInterfaces.Contains(referencesTypes.IBqlTableSymbol) is true;
+
+                bool IsBqlTableOrCacheExtension(ITypeSymbol? type)
                 {
-                    return type?.AllInterfaces.Contains(referencesTypes.IBqlTableSymbol) is true;
+                    if (IsBqlTable(type))
+                        return true;
+
+                    if (type == null)
+                        return false;
+
+                    var baseType = type.BaseType;
+
+                    while (baseType != null)
+                    {
+                        if (baseType.Equals(referencesTypes.PXCacheExtensionSymbol, SymbolEqualityComparer.Default))
+                            return true;
+                        baseType = baseType.BaseType;
+                    }
+                    
+                    return false;
                 }
 
                 static bool CheckContainingTypes(INamedTypeSymbol classSymbol,
@@ -193,20 +212,22 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
 
 
         private IncrementalValueProvider<ReferencesTypesSymbols>
-            GetTypes(IncrementalGeneratorInitializationContext context)
+            GetReferencesTypes(IncrementalGeneratorInitializationContext context)
         {
             return context.CompilationProvider.Select(
                 (cmp, ct) =>
                 {
                     var iBqlTable       = cmp.GetTypeByMetadataName(IBqlTableName);
                     var eventSubscriber = cmp.GetTypeByMetadataName(PXEventSubscriberAttributeName);
-                    if (iBqlTable is null || eventSubscriber is null)
+                    var cacheExtension  = cmp.GetTypeByMetadataName(PXCacheExtensionName);
+                    if (iBqlTable is null || eventSubscriber is null || cacheExtension is null)
                         //todo: properly handle error
                         throw new InvalidOperationException("Cannot find required type.");
                     return new ReferencesTypesSymbols
                     {
                         IBqlTableSymbol                  = iBqlTable,
                         PXEventSubscriberAttributeSymbol = eventSubscriber,
+                        PXCacheExtensionSymbol                 = cacheExtension,
                     };
                 });
         }
@@ -216,6 +237,7 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
         {
             public INamedTypeSymbol IBqlTableSymbol { get; init; }
             public INamedTypeSymbol PXEventSubscriberAttributeSymbol { get; init; }
+            public INamedTypeSymbol PXCacheExtensionSymbol { get; init; }
         }
 
         private class PropertyNameEqualityComparer : IEqualityComparer<IPropertySymbol>

@@ -1,6 +1,5 @@
 ﻿using System;
 using PX.Data;
-using PX.Data.BQL;
 
 namespace PX.Generators.Tests.DacGeneratorsTests.Examples.CacheExtension
 {
