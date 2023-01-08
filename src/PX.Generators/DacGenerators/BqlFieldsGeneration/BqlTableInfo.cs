@@ -6,9 +6,32 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
 {
     internal class BqlTableInfo : IEquatable<BqlTableInfo>
     {
+        public List<string>? BaseClasses { get; init; }
         public string Name { get; init; }
         public string? Namespace { get; init; }
-        public string FullName => string.IsNullOrEmpty(Namespace) ? Name : $"{Namespace}.{Name}";
+
+        private string? _fullName;
+        public string FullName
+        {
+            get
+            {
+                if (_fullName != null)
+                    return _fullName;
+
+                var sb = new StringBuilder();
+                if (Namespace != null)
+                    sb.Append(Namespace).Append('.');
+                if (BaseClasses != null)
+                {
+                    foreach (var baseClass in BaseClasses)
+                    {
+                        sb.Append(baseClass).Append('+');
+                    }
+                }
+                sb.Append(Name);
+                return _fullName = sb.ToString();
+            }
+        }
         public IReadOnlyCollection<BqlFieldInfo>? Fields { get; init; }
 
         public bool Equals(BqlTableInfo? other)

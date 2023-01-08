@@ -38,7 +38,7 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
                           .Collect()
                           .SelectMany(static (bqlTable, _) => bqlTable.Distinct())!;
 
-            static bool IsPartial(ClassDeclarationSyntax classDeclaration)
+            static bool IsPartial(TypeDeclarationSyntax classDeclaration)
             {
                 return classDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword));
             }
@@ -53,12 +53,34 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
                 if (classSymbol == null)
                     return null;
 
-                // todo: support nested types
-                if (classSymbol.ContainingType is not null)
-                    return null;
-
                 if (IsBqlTable(classSymbol) is false)
                     return null;
+
+                List<INamedTypeSymbol>? containingTypes = null;
+                INamedTypeSymbol? baseSymbol = classSymbol.ContainingType;
+                while (baseSymbol != null)
+                {
+                    bool isPartial = false;
+                    foreach (var syntaxRef in baseSymbol.DeclaringSyntaxReferences)
+                    {
+                        var typeDecl = syntaxRef.GetSyntax() as TypeDeclarationSyntax;
+                        if (typeDecl != null && IsPartial(typeDecl))
+                        {
+                            isPartial = true;
+                            break;
+                        }
+                    }
+                    
+                    // todo: check if is enough
+                    if (isPartial)
+                    {
+                        containingTypes ??= new();
+                        containingTypes.Add(baseSymbol);
+                        baseSymbol = baseSymbol.ContainingType;
+                    }
+                    else
+                        return null;
+                }
 
 
                 var allTypes = GetAllBqlTableTypeFor(classSymbol).ToList();
@@ -107,12 +129,17 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
                 }
 
                 if (bqlFields.Count > 0)
+                {
+                    var baseClasses = containingTypes?.Select(n => n.Name).Reverse().ToList();
+
                     return new BqlTableInfo
                     {
                         Name      = classSymbol.Name,
                         Namespace = classSymbol.ContainingNamespace?.ToDisplayString(),
-                        Fields    = bqlFields
+                        Fields    = bqlFields,
+                        BaseClasses = baseClasses,
                     };
+                }
 
                 return null;
 

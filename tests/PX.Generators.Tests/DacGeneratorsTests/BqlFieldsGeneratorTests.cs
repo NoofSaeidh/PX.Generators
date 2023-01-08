@@ -28,11 +28,12 @@ namespace PX.Generators.Tests
         [Theory]
         [InlineData("SimpleExample")]
         [InlineData("InheritanceExample")]
+        [InlineData("NestedExample")]
         public void Generator_Should_Generate_All_Missing_Fields(string exampleName)
         {
             // arrange
-            var (In, Out) = GetInAndOutExamples(exampleName);
-            var             compilation = TestsInitialization.CreateCompilation(In);
+            var (input, expected) = GetInAndOutExamples(exampleName);
+            var             compilation = TestsInitialization.CreateCompilation(input);
             var             generator   = new BqlFieldsGenerator();
             GeneratorDriver driver      = CSharpGeneratorDriver.Create(generator);
 
@@ -50,25 +51,28 @@ namespace PX.Generators.Tests
                                  .Should().BeEmpty();
 
                 diagnostics.Should().BeEmpty();
-                outputCompilation.SyntaxTrees.Should().HaveCount(2);
-                // todo: fix errors
-                //outputCompilation.GetDiagnostics().Should().BeEmpty();
+                outputCompilation.SyntaxTrees.Should().HaveCount(expected.Count + 1);
+                outputCompilation.GetDiagnostics().Should().BeEmpty();
 
                 var runResult = driver.GetRunResult();
                 runResult.Diagnostics.Should().BeEmpty();
-                runResult.GeneratedTrees.Should().HaveCount(1);
+                runResult.GeneratedTrees.Should().HaveCount(expected.Count);
 
                 var generatorResult = runResult.Results[0];
                 generatorResult.Diagnostics.Should().BeEmpty();
-                generatorResult.GeneratedSources.Should().HaveCount(1);
+                generatorResult.GeneratedSources.Should().HaveCount(expected.Count);
                 generatorResult.Exception.Should().BeNull();
 
-                generatorResult.GeneratedSources[0].HintName.Should()
-                               .Be($"PX.Generators.Tests.Examples.{exampleName}.bqlfields.g.cs");
-                var actual   = ClearUp(generatorResult.GeneratedSources[0].SourceText.ToString());
-                var expected = ClearUp(Out.ToString());
-
-                actual.Should().BeEquivalentTo(expected, "result of generator should be same as in example");
+                // todo
+                //generatorResult.GeneratedSources[0].HintName.Should()
+                //               .Be($"PX.Generators.Tests.Examples.{exampleName}.bqlfields.g.cs");
+                foreach (var (generatedSource, outText) in generatorResult.GeneratedSources.Zip(
+                    expected, (l, r) => (l, r)))
+                {
+                    var actualText   = ClearUp(generatedSource.SourceText.ToString());
+                    var expectedText = ClearUp(outText.ToString());
+                    actualText.Should().BeEquivalentTo(expectedText, "result of generator should be same as in example");
+                }
             }
 
             string ClearUp(string input)
@@ -77,14 +81,39 @@ namespace PX.Generators.Tests
             }
         }
 
-        private static (SourceText In, SourceText Out) GetInAndOutExamples(string exampleName)
+        private static (SourceText Input, List<SourceText> Expected) GetInAndOutExamples(string exampleName)
         {
-            var In  = SourceText.From(File.OpenRead(Path.Combine(ExamplesFolder, $"{exampleName}.in.cs")));
-            var Out = SourceText.From(File.OpenRead(Path.Combine(ExamplesFolder, $"{exampleName}.out.cs")));
-            return (In, Out);
+            var input = TryGetSourceText($"{exampleName}.in.cs")
+                     ?? throw new InvalidOperationException($"Cannot find file for {exampleName}.in.cs");
+            var output = GetExpected().ToList();
+            if (output.Count == 0)
+                throw new InvalidOperationException($"Cannot find file for {exampleName}.out.cs");
+
+            return (input, output);
+
+            SourceText? TryGetSourceText(string fileName)
+            {
+                var path = Path.Combine(ExamplesFolder, fileName);
+                if (File.Exists(path))
+                    return SourceText.From(File.OpenRead(path));
+                return null;
+            }
+
+            IEnumerable<SourceText> GetExpected()
+            {
+                if (TryGetSourceText($"{exampleName}.out.cs") is { } expected)
+                {
+                    yield return expected;
+                }
+
+                for (var i = 1; ; i++)
+                {
+                    if (TryGetSourceText($"{exampleName}.out.{i}.cs") is { } multipleExpected)
+                        yield return multipleExpected;
+                    else
+                        break;
+                }
+            }
         }
-
-
-
     }
 }

@@ -3,10 +3,11 @@
   <PropertyGroup>
     <TargetFramework>net4.8</TargetFramework>
     <Nullable>disable</Nullable>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
     <IsPackable>false</IsPackable>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,6 +36,16 @@
   <ItemGroup>
     <Compile Remove="DacGeneratorsTests\Examples\*.out.cs" />
     <None Include="DacGeneratorsTests\Examples\*.out.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="DacGeneratorsTests\Examples\NestedExample.out.1.cs" />
+    <Compile Remove="DacGeneratorsTests\Examples\NestedExample.out.2.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="DacGeneratorsTests\Examples\NestedExample.out.2.cs" />
+    <None Include="DacGeneratorsTests\Examples\NestedExample.out.1.cs" />
   </ItemGroup>
 
   <ItemGroup>

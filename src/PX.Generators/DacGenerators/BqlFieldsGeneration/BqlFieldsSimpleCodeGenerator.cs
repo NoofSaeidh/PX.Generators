@@ -31,20 +31,25 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
 
             using (GetNamespace())
             {
-                _builder.StartLine("partial class ").Add(input.Name);
-                using (_builder.CodeBlock())
+                if (input.BaseClasses != null)
                 {
-                    foreach (var field in input.Fields)
+                    foreach (var baseClass in input.BaseClasses)
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        if (string.IsNullOrEmpty(field.ClassName) || string.IsNullOrEmpty(field.ClassType))
-                            continue;
-
-                        _builder.StartLine().Add("public ").ConditionalAdd(field.IsHidingBaseClass, "new ")
-                                .Add("abstract class ").Add(field.ClassName!).Add(" : PX.Data.BQL.").Add(field.ClassType!)
-                                .Add(".Field<").Add(field.ClassName!).Add("> { }");
+                        // todo: might be not class!
+                        _builder.StartLine("partial class ").Add(baseClass);
+                        _builder.OpenCodeBlock(onNewLine: true);
                     }
+
+                    WriteClass();
+
+                    for (int i = 0; i < input.BaseClasses.Count; i++)
+                    {
+                        _builder.CloseCodeBlock();
+                    }
+                }
+                else
+                {
+                    WriteClass();
                 }
             }
 
@@ -67,6 +72,25 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
 
                 _builder.StartLine("namespace ").Add(input.Namespace!);
                 return _builder.CodeBlock(onNewLine: true);
+            }
+
+            void WriteClass()
+            {
+                _builder.StartLine("partial class ").Add(input.Name);
+                using (_builder.CodeBlock())
+                {
+                    foreach (var field in input.Fields!)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        if (string.IsNullOrEmpty(field.ClassName) || string.IsNullOrEmpty(field.ClassType))
+                            continue;
+
+                        _builder.StartLine().Add("public ").ConditionalAdd(field.IsHidingBaseClass, "new ")
+                                .Add("abstract class ").Add(field.ClassName!).Add(" : PX.Data.BQL.").Add(field.ClassType!)
+                                .Add(".Field<").Add(field.ClassName!).Add("> { }");
+                    }
+                }
             }
         }
     }

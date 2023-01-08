@@ -31,6 +31,18 @@ namespace PX.Generators.Common
             return _codeBlockHandler;
         }
 
+        public StringCodeBuilder OpenCodeBlock(bool onNewLine = true)
+        {
+            CodeBlock(onNewLine);
+            return this;
+        }
+
+        public StringCodeBuilder CloseCodeBlock()
+        {
+            _codeBlockHandler.Close();
+            return this;
+        }
+
         public StringCodeBuilder EmptyLine()
         {
             _builder.AppendLine();
