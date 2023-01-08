@@ -4,9 +4,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -17,7 +19,7 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
         public static readonly string Indentation = "\t";
         public static BqlFieldsCodeGenerator Instance { get; } = new();
 
-        public (string? FileName, SourceText? source) Compile(BqlTableInfo bqlTable)
+        public (string? FileName, SourceText? source) Compile(BqlTableInfo bqlTable, CancellationToken cancellationToken)
         {
             if (bqlTable.Fields?.Count is not > 0)
             {
@@ -25,9 +27,13 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
                 return default;
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             var compilation = CompilationUnit()
                .AddMembers(GetNamespaceOrClass()
                               .WithLeadingTrivia(GetComment()));
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             compilation = compilation.NormalizeWhitespace(Indentation);
 

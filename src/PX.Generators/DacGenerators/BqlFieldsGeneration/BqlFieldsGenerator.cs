@@ -193,7 +193,7 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
 
         private void GenerateCode(SourceProductionContext context, BqlTableInfo bqlTable)
         {
-            var (name, text) = BqlFieldsCodeGenerator.Instance.Compile(bqlTable);
+            var (name, text) = BqlFieldsCodeGenerator.Instance.Compile(bqlTable, context.CancellationToken);
             if (name == null || text == null)
                 return;
 
