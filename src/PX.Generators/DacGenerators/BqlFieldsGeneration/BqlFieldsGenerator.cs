@@ -70,8 +70,6 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
                     return null;
 
 
-                var existingClasses = classSymbol.GetTypeMembers();
-
                 var allTypes = GetAllBqlTableTypeFor(classSymbol).ToList();
 
 #pragma warning disable RS1024
