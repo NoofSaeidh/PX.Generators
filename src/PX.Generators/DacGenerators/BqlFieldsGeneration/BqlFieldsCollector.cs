@@ -56,32 +56,8 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
                 if (IsBqlTable(classSymbol) is false)
                     return null;
 
-                List<INamedTypeSymbol>? containingTypes = null;
-                INamedTypeSymbol? baseSymbol = classSymbol.ContainingType;
-                while (baseSymbol != null)
-                {
-                    bool isPartial = false;
-                    foreach (var syntaxRef in baseSymbol.DeclaringSyntaxReferences)
-                    {
-                        var typeDecl = syntaxRef.GetSyntax() as TypeDeclarationSyntax;
-                        if (typeDecl != null && IsPartial(typeDecl))
-                        {
-                            isPartial = true;
-                            break;
-                        }
-                    }
-                    
-                    // todo: check if is enough
-                    if (isPartial)
-                    {
-                        containingTypes ??= new();
-                        containingTypes.Add(baseSymbol);
-                        baseSymbol = baseSymbol.ContainingType;
-                    }
-                    else
-                        return null;
-                }
-
+                if (CheckContainingTypes(classSymbol, out var containingTypes) is false)
+                    return null;
 
                 var allTypes = GetAllBqlTableTypeFor(classSymbol).ToList();
 
@@ -116,16 +92,12 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
                         });
                     }
 
-                    bool CannotAddClassField() => selfNestedClasses.Any(c =>
-                                                                            StringComparer.InvariantCultureIgnoreCase
-                                                                                          .Equals(property.Name,
-                                                                                                  c.Name));
+                    bool CannotAddClassField() => selfNestedClasses
+                        .Any(c => StringComparer.InvariantCultureIgnoreCase.Equals(property.Name, c.Name));
 
-                    bool IsHidingBaseClass() => parentNestedClasses!.Any(c =>
-                                                                             StringComparer.InvariantCulture.Equals(
-                                                                                 BqlFieldInfo.GetClassName(
-                                                                                     property.Name),
-                                                                                 c.Name));
+                    bool IsHidingBaseClass() => parentNestedClasses!
+                        .Any(c => StringComparer.InvariantCulture.Equals(
+                                 BqlFieldInfo.GetClassName(property.Name), c.Name));
                 }
 
                 if (bqlFields.Count > 0)
@@ -134,9 +106,9 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
 
                     return new BqlTableInfo
                     {
-                        Name      = classSymbol.Name,
-                        Namespace = classSymbol.ContainingNamespace?.ToDisplayString(),
-                        Fields    = bqlFields,
+                        Name        = classSymbol.Name,
+                        Namespace   = classSymbol.ContainingNamespace?.ToDisplayString(),
+                        Fields      = bqlFields,
                         BaseClasses = baseClasses,
                     };
                 }
@@ -185,6 +157,36 @@ namespace PX.Generators.DacGenerators.BqlFieldsGeneration
                 bool IsBqlTable(ITypeSymbol? type)
                 {
                     return type?.AllInterfaces.Contains(referencesTypes.IBqlTableSymbol) is true;
+                }
+
+                static bool CheckContainingTypes(INamedTypeSymbol classSymbol,
+                                                 out List<INamedTypeSymbol>? baseClassesList)
+                {
+                    baseClassesList = null;
+                    INamedTypeSymbol? baseSymbol = classSymbol.ContainingType;
+                    while (baseSymbol != null)
+                    {
+                        bool isPartial = false;
+                        foreach (var syntaxRef in baseSymbol.DeclaringSyntaxReferences)
+                        {
+                            var typeDecl = syntaxRef.GetSyntax() as TypeDeclarationSyntax;
+                            if (typeDecl != null && IsPartial(typeDecl))
+                            {
+                                isPartial = true;
+                                break;
+                            }
+                        }
+
+                        // todo: check if is enough
+                        if (isPartial is false)
+                            return false;
+
+                        baseClassesList ??= new();
+                        baseClassesList.Add(baseSymbol);
+                        baseSymbol = baseSymbol.ContainingType;
+                    }
+
+                    return true;
                 }
             }
         }
